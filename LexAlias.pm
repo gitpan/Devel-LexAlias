@@ -1,14 +1,24 @@
 package Devel::LexAlias;
 require DynaLoader;
+use Devel::Caller qw(caller_cv);
 
 require 5.005003;
 
 @ISA = qw(Exporter DynaLoader);
 @EXPORT_OK = qw(lexalias);
 
-$VERSION = '0.01';
+$VERSION = '0.03';
 
 bootstrap Devel::LexAlias $VERSION;
+
+sub lexalias {
+    my $cv = shift;
+    unless (ref $cv eq 'CODE') {
+        $cv = caller_cv($cv + 1);
+    }
+
+    return _lexalias($cv, @_);
+}
 
 1;
 __END__
@@ -23,7 +33,7 @@ Devel::LexAlias - alias lexical variables
 
  sub steal_my_x {
      my $foo = 1;
-     lexalias(\&foo, '$x', \$foo);
+     lexalias(1, '$x', \$foo);
  }
 
  sub foo {
@@ -46,9 +56,10 @@ Still here?
 
 =over
 
-=item lexalias( $coderef, $name, $variable )
+=item lexalias( $where, $name, $variable )
 
-C<$coderef> refers to the subroutine in which to alias the lexical
+C<$where> refers to the subroutine in which to alias the lexical, it
+can be a coderef or a call level such that you'd give to C<caller>
 
 C<$name> is the name of the lexical within that subroutine
 
@@ -58,7 +69,7 @@ C<$variable> is a reference to the variable to install at that location
 
 =head1 BUGS
 
-lexalias delves into the internals of the interpreter to perform it's
+lexalias delves into the internals of the interpreter to perform its
 actions and is so very sensitive to bad data, which will likely result
 in flaming death, or a core dump.  Consider this a warning.
 

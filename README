@@ -6,7 +6,7 @@ SYNOPSIS
 
      sub steal_my_x {
          my $foo = 1;
-         lexalias(\&foo, '$x', \$foo);
+         lexalias(1, '$x', \$foo);
      }
 
      sub foo {
@@ -26,16 +26,16 @@ DESCRIPTION
 
     Still here?
 
-    lexalias( $coderef, $name, $reference )
-        "$coderef" refers to the subroutine in which to alias the lexical
+    lexalias( $where, $name, $variable )
+        $where refers to the subroutine in which to alias the lexical, it
+        can be a coderef or a call level such that you'd give to "caller"
 
-        "$name" is the name of the lexical within that subroutine
+        $name is the name of the lexical within that subroutine
 
-        "$variable" is a reference to the variable to install at that
-        location
+        $variable is a reference to the variable to install at that location
 
 BUGS
-    lexalias delves into the internals of the interpreter to perform it's
+    lexalias delves into the internals of the interpreter to perform its
     actions and is so very sensitive to bad data, which will likely result
     in flaming death, or a core dump. Consider this a warning.
 
@@ -49,7 +49,7 @@ BUGS
     the horizon though.
 
 SEE ALSO
-    peek_sub from the PadWalker manpage, the Devel::Peek manpage
+    peek_sub from PadWalker, Devel::Peek
 
 AUTHOR
     Richard Clamp <richardc@unixbeard.net> with close reference to PadWalker

@@ -1,3 +1,5 @@
+/*	$Id: LexAlias.xs,v 1.5 2002/02/26 03:11:44 richardc Exp $	*/
+
 #include "EXTERN.h"
 #include "perl.h"
 #include "XSUB.h"
@@ -7,37 +9,36 @@
 MODULE = Devel::LexAlias                PACKAGE = Devel::LexAlias
 
 void
-lexalias(cur_sv, name, new_rv)
-SV*   cur_sv;
+_lexalias(cv_ref, name, new_rv)
+SV*   cv_ref;
 char* name;
 SV*   new_rv;
   PREINIT:
-     CV* cur_cv = (CV*)SvRV(cur_sv);
-     AV* padlist = CvPADLIST(cur_cv);
-     AV* pad_namelist = (AV*) *av_fetch(padlist, 0, 0);
-     AV* pad_vallist  = (AV*) *av_fetch(padlist, av_len(padlist), 0);
-     SV* new_sv;
-     I32 i;
+    CV *cv      = SvROK(cv_ref) ? (CV*) SvRV(cv_ref) : NULL;
+    AV* padn    = cv ? (AV*) AvARRAY(CvPADLIST(cv))[0] : PL_comppad_name;
+    AV* padv    = cv ? (AV*) AvARRAY(CvPADLIST(cv))[1] : PL_comppad;
+    SV* new_sv;
+    I32 i;
 
   CODE:
-     if (!SvROK(new_rv)) croak("ref is not a reference");
-     new_sv = SvRV(new_rv);
+    if (!SvROK(new_rv)) croak("ref is not a reference");
+    new_sv = SvRV(new_rv);
 
-     for (i = 0; i <= av_len(pad_namelist); ++i) {
-        SV** name_ptr = av_fetch(pad_namelist, i, 0);
+    for (i = 0; i <= av_len(padn); ++i) {
+        SV** name_ptr = av_fetch(padn, i, 0);
         if (name_ptr) {
-          SV* name_sv = *name_ptr;
+            SV* name_sv = *name_ptr;
+            
+            if (SvPOKp(name_sv)) {
+                char *name_str = SvPVX(name_sv);
 
-          if (SvPOKp(name_sv)) {
-             char *name_str = SvPVX(name_sv);
-
-             if (!strcmp(name, name_str)) {
-                SV* old_sv = (SV*) av_fetch(pad_vallist, i, 0);
-                SvREFCNT_dec(old_sv);
-                av_store(pad_vallist, i, new_sv);
-                SvREFCNT_inc(new_sv);
-             }
-          }
+                if (!strcmp(name, name_str)) {
+                    SV* old_sv = (SV*) av_fetch(padv, i, 0);
+                    SvREFCNT_dec(old_sv);
+                    av_store(padv, i, new_sv);
+                    SvREFCNT_inc(new_sv);
+                }
+            }
         }
-     }
+    }
 
