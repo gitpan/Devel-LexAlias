@@ -1,6 +1,30 @@
+#!perl -w
+use strict;
+use Test::More tests => 11;
+
 use Devel::LexAlias qw(lexalias);
 
-use Test::More tests => 8;
+# testing for predictive destruction.  especially around ithreads
+my $expect;
+sub Foo::DESTROY {
+    my ($destroyed) = @{ shift() };
+    is( $destroyed, $expect, "expected destruction of $expect" );
+}
+
+sub inner {
+    my $inner = bless ['$inner'], 'Foo';
+    $expect = '$outer';
+    lexalias(1, '$outer', \$inner);
+    $expect = '';
+}
+
+sub outer {
+    my $outer = bless [ '$outer' ], 'Foo';
+    inner;
+    is ( $outer->[0], '$inner', "alias worked" );
+    $expect = '$inner';
+}
+outer;
 
 sub steal_foo {
     my $foo = 1;
@@ -43,3 +67,6 @@ sub foo {
 }
 
 foo;
+print "# out of foo\n";
+
+exit 0;

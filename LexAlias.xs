@@ -1,4 +1,4 @@
-/*	$Id: LexAlias.xs,v 1.5 2002/02/26 03:11:44 richardc Exp $	*/
+/*	$Id: LexAlias.xs,v 1.7 2002/07/25 14:25:22 richardc Exp $	*/
 
 #include "EXTERN.h"
 #include "perl.h"
@@ -9,18 +9,15 @@
 MODULE = Devel::LexAlias                PACKAGE = Devel::LexAlias
 
 void
-_lexalias(cv_ref, name, new_rv)
-SV*   cv_ref;
-char* name;
-SV*   new_rv;
-  PREINIT:
-    CV *cv      = SvROK(cv_ref) ? (CV*) SvRV(cv_ref) : NULL;
-    AV* padn    = cv ? (AV*) AvARRAY(CvPADLIST(cv))[0] : PL_comppad_name;
-    AV* padv    = cv ? (AV*) AvARRAY(CvPADLIST(cv))[1] : PL_comppad;
+_lexalias(SV* cv_ref, char *name, SV* new_rv)
+  CODE:
+{
+    CV *cv   = SvROK(cv_ref) ? (CV*) SvRV(cv_ref) : NULL;
+    AV* padn = cv ? (AV*) AvARRAY(CvPADLIST(cv))[0] : PL_comppad_name;
+    AV* padv = cv ? (AV*) AvARRAY(CvPADLIST(cv))[1] : PL_comppad;
     SV* new_sv;
     I32 i;
 
-  CODE:
     if (!SvROK(new_rv)) croak("ref is not a reference");
     new_sv = SvRV(new_rv);
 
@@ -34,11 +31,10 @@ SV*   new_rv;
 
                 if (!strcmp(name, name_str)) {
                     SV* old_sv = (SV*) av_fetch(padv, i, 0);
-                    SvREFCNT_dec(old_sv);
                     av_store(padv, i, new_sv);
                     SvREFCNT_inc(new_sv);
                 }
             }
         }
     }
-
+}

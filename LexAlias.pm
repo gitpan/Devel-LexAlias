@@ -7,7 +7,7 @@ require 5.005003;
 @ISA = qw(Exporter DynaLoader);
 @EXPORT_OK = qw(lexalias);
 
-$VERSION = '0.03';
+$VERSION = '0.04';
 
 bootstrap Devel::LexAlias $VERSION;
 
